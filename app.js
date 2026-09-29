@@ -3,21 +3,37 @@ const $ = s => document.querySelector(s);
 const API_URL =
   'https://sagecore-backend-sagecore1.vercel.app/api/chat';
 
-const messages = $('#messages') || $('.messages');
+// ===============================
+// SAGECORE ELEMENTS
+// ===============================
+
+const messages =
+  $('#messages') ||
+  $('.messages');
+
 const input =
+  $('#prompt') ||
   $('#messageInput') ||
   $('textarea') ||
-  $('input[type=text]');
+  $('input[type="text"]');
+
+const form =
+  $('#chatForm');
 
 const send =
+  $('#chatForm button[type="submit"]') ||
   $('#sendBtn') ||
   $('#send') ||
   $('.send-btn');
 
 const mic =
-  $('#micBtn') ||
   $('#mic') ||
+  $('#micBtn') ||
   $('.mic-btn');
+
+// ===============================
+// MEMORY
+// ===============================
 
 let history = JSON.parse(
   localStorage.getItem('sagecore.history') || '[]'
@@ -26,37 +42,63 @@ let history = JSON.parse(
 let speaking = true;
 let busy = false;
 
+// ===============================
+// STATUS
+// ===============================
+
 function status(value) {
   const el =
     $('#coreStatus') ||
     $('.core-status') ||
     $('.status');
 
-  if (el) el.textContent = value;
+  if (el) {
+    el.textContent = value;
+  }
 
-  document.body.dataset.state = value.toLowerCase();
+  document.body.dataset.state =
+    value.toLowerCase();
 }
+
+// ===============================
+// CHAT MESSAGE
+// ===============================
 
 function add(role, text) {
   if (!messages) return;
 
   const div = document.createElement('div');
 
-  div.className = 'message ' + role;
+  div.className =
+    'message ' + role;
+
   div.textContent = text;
 
   messages.appendChild(div);
-  messages.scrollTop = messages.scrollHeight;
+
+  messages.scrollTop =
+    messages.scrollHeight;
 }
 
+// Oude gesprekken terugzetten
+
 history.forEach(message => {
-  add(message.role, message.content);
+  add(
+    message.role,
+    message.content
+  );
 });
+
+// ===============================
+// SAGECORE AI
+// ===============================
 
 async function ask(text) {
   text = text.trim();
 
-  if (!text || busy) return;
+  if (!text || busy) {
+    return;
+  }
 
   busy = true;
 
@@ -69,33 +111,47 @@ async function ask(text) {
 
   localStorage.setItem(
     'sagecore.history',
-    JSON.stringify(history.slice(-40))
+    JSON.stringify(
+      history.slice(-40)
+    )
   );
 
   status('THINKING');
 
   try {
-    const response = await fetch(API_URL, {
-      method: 'POST',
+    const response =
+      await fetch(API_URL, {
+        method: 'POST',
 
-      headers: {
-        'Content-Type': 'application/json'
-      },
+        headers: {
+          'Content-Type':
+            'application/json'
+        },
 
-      body: JSON.stringify({
-        message: text
-      })
-    });
+        body: JSON.stringify({
+          message: text
+        })
+      });
 
-    const data = await response.json();
+    let data;
 
-    if (!response.ok) {
+    try {
+      data = await response.json();
+    } catch {
       throw new Error(
-        data.error || 'AI service error'
+        'Ongeldig antwoord van de SageCore-server.'
       );
     }
 
-    const answer = data.reply;
+    if (!response.ok) {
+      throw new Error(
+        data.error ||
+        'AI-service error'
+      );
+    }
+
+    const answer =
+      data.reply;
 
     if (!answer) {
       throw new Error(
@@ -103,7 +159,10 @@ async function ask(text) {
       );
     }
 
-    add('assistant', answer);
+    add(
+      'assistant',
+      answer
+    );
 
     history.push({
       role: 'assistant',
@@ -112,8 +171,14 @@ async function ask(text) {
 
     localStorage.setItem(
       'sagecore.history',
-      JSON.stringify(history.slice(-40))
+      JSON.stringify(
+        history.slice(-40)
+      )
     );
+
+    // ===========================
+    // GESPROKEN ANTWOORD
+    // ===========================
 
     if (
       speaking &&
@@ -124,9 +189,12 @@ async function ask(text) {
       speechSynthesis.cancel();
 
       const utterance =
-        new SpeechSynthesisUtterance(answer);
+        new SpeechSynthesisUtterance(
+          answer
+        );
 
-      utterance.lang = 'nl-NL';
+      utterance.lang =
+        'nl-NL';
 
       utterance.onend = () => {
         status('READY');
@@ -136,13 +204,19 @@ async function ask(text) {
         status('READY');
       };
 
-      speechSynthesis.speak(utterance);
+      speechSynthesis.speak(
+        utterance
+      );
+
     } else {
       status('READY');
     }
 
   } catch (error) {
-    console.error(error);
+    console.error(
+      'SageCore error:',
+      error
+    );
 
     add(
       'assistant',
@@ -157,94 +231,195 @@ async function ask(text) {
   }
 }
 
-if (send) {
-  send.onclick = () => {
-    if (!input) return;
+// ===============================
+// CHAT FORM
+// ===============================
 
-    const text = input.value;
-    input.value = '';
-
-    ask(text);
-  };
-}
-
-if (input) {
-  input.addEventListener('keydown', event => {
-    if (
-      event.key === 'Enter' &&
-      !event.shiftKey
-    ) {
+if (form) {
+  form.addEventListener(
+    'submit',
+    event => {
       event.preventDefault();
-      send?.click();
+
+      if (!input) {
+        console.error(
+          'SageCore: invoerveld niet gevonden.'
+        );
+
+        return;
+      }
+
+      const text =
+        input.value;
+
+      input.value = '';
+
+      ask(text);
     }
-  });
+  );
 }
+
+// Fallback voor interfaces zonder form
+
+else if (send) {
+  send.addEventListener(
+    'click',
+    event => {
+      event.preventDefault();
+
+      if (!input) return;
+
+      const text =
+        input.value;
+
+      input.value = '';
+
+      ask(text);
+    }
+  );
+}
+
+// ===============================
+// ENTER TO SEND
+// ===============================
+
+if (input && !form) {
+  input.addEventListener(
+    'keydown',
+    event => {
+      if (
+        event.key === 'Enter' &&
+        !event.shiftKey
+      ) {
+        event.preventDefault();
+
+        if (send) {
+          send.click();
+        } else {
+          const text =
+            input.value;
+
+          input.value = '';
+
+          ask(text);
+        }
+      }
+    }
+  );
+}
+
+// ===============================
+// MICROFOON
+// ===============================
 
 const SpeechRecognition =
   window.SpeechRecognition ||
   window.webkitSpeechRecognition;
 
 if (mic) {
-  mic.onclick = () => {
-    if (!SpeechRecognition) {
-      alert(
-        'Spraakherkenning is op deze Safari-versie ' +
-        'niet beschikbaar. Je kunt SageCore wel typen.'
-      );
+  mic.addEventListener(
+    'click',
+    event => {
+      event.preventDefault();
 
-      return;
+      if (!SpeechRecognition) {
+        alert(
+          'Spraakherkenning is op deze Safari-versie ' +
+          'niet beschikbaar. Je kunt SageCore wel typen.'
+        );
+
+        return;
+      }
+
+      const recognition =
+        new SpeechRecognition();
+
+      recognition.lang =
+        'nl-NL';
+
+      recognition.interimResults =
+        true;
+
+      status('LISTENING');
+
+      recognition.onresult =
+        event => {
+          let transcript = '';
+
+          for (
+            let i =
+              event.resultIndex;
+            i <
+              event.results.length;
+            i++
+          ) {
+            transcript +=
+              event.results[i][0]
+                .transcript;
+          }
+
+          if (input) {
+            input.value =
+              transcript;
+          }
+        };
+
+      recognition.onend = () => {
+        status('READY');
+
+        if (
+          input &&
+          input.value.trim()
+        ) {
+          const text =
+            input.value;
+
+          input.value = '';
+
+          ask(text);
+        }
+      };
+
+      recognition.onerror =
+        error => {
+          console.error(
+            'Speech recognition:',
+            error
+          );
+
+          status('READY');
+        };
+
+      recognition.start();
     }
-
-    const recognition =
-      new SpeechRecognition();
-
-    recognition.lang = 'nl-NL';
-    recognition.interimResults = true;
-
-    status('LISTENING');
-
-    recognition.onresult = event => {
-      let transcript = '';
-
-      for (
-        let i = event.resultIndex;
-        i < event.results.length;
-        i++
-      ) {
-        transcript +=
-          event.results[i][0].transcript;
-      }
-
-      if (input) {
-        input.value = transcript;
-      }
-    };
-
-    recognition.onend = () => {
-      status('READY');
-
-      if (input?.value.trim()) {
-        const text = input.value;
-        input.value = '';
-
-        ask(text);
-      }
-    };
-
-    recognition.onerror = () => {
-      status('READY');
-    };
-
-    recognition.start();
-  };
+  );
 }
 
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register(
-      './sw.js'
-    );
-  });
+// ===============================
+// SERVICE WORKER
+// ===============================
+
+if (
+  'serviceWorker' in navigator
+) {
+  window.addEventListener(
+    'load',
+    () => {
+      navigator
+        .serviceWorker
+        .register('./sw.js')
+        .catch(error => {
+          console.error(
+            'Service Worker:',
+            error
+          );
+        });
+    }
+  );
 }
+
+// ===============================
+// START
+// ===============================
 
 status('READY');
