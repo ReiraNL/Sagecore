@@ -1,0 +1,19 @@
+<!doctype html><html lang='nl'><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width,initial-scale=1.0'><title>SageCore</title><link rel='stylesheet' href='style.css'>  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#071a2b">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+</head><body>
+<div class='app'>
+<aside class='left panel'><div class='brand'><div class='mini-core'></div><div><h1>SAGECORE</h1><span>YOUR MIND, AMPLIFIED</span></div></div>
+<nav><button class='active' data-view='Chat'>◉ <span>Chat</span></button><button data-view='Projecten'>▣ <span>Projecten</span></button><button data-view='Bestanden'>▱ <span>Bestanden</span></button><button data-view='Memory'>◎ <span>Memory</span></button><button data-view='Tools'>⌘ <span>Tools</span></button><button data-view='Instellingen'>⚙ <span>Instellingen</span></button></nav>
+<div class='history'><h3>GESPREKKEN</h3><button class='conversation'>＋ Nieuw gesprek</button><p>AI Interface</p><p>Project ideeën</p><p>Script hulp</p></div>
+<div class='version'>SAGECORE v0.5.0<br><small>iPhone • Standalone AI</small></div></aside>
+<main><header><div><small>INTERFACE ONLINE</small><h2 id='viewTitle'>Chat</h2></div><div class='status-dot' id='aiOnline'>● AI CHECK...</div></header>
+<section class='hero'><div class='orbit o1'></div><div class='orbit o2'></div><div class='orbit o3'></div><div class='core'><div class='core-inner'></div></div><div class='core-label'><b>SAGECORE</b><span id='coreStatus'>READY</span></div></section>
+<section class='chat panel'><div id='messages'><div class='message ai'><b>SAGECORE</b><p>Hallo. Ik ben SageCore, jouw AI-assistent. Waarmee kan ik je helpen?</p></div></div><form id='chatForm'><input id='prompt' autocomplete='off' placeholder='Stel hier je vraag...' /><button type='button' id='mic'>◉</button><button type='submit'>➤</button></form></section>
+<div class='modes'><button class='active'>Chat Mode</button><button>Project Mode</button><button>Analysis Mode</button><button>System Mode</button></div></main>
+<aside class='right'><section class='panel system'><h3>SYSTEEM STATUS</h3><div class='meter'><span>AI CORE</span><b>ON-DEVICE</b></div><div id='voiceState' class='voice-state'>VOICE: GEREED</div><div class='stats'><div><span>MODEL</span><b id="modelLabel">Controleren...</b></div><div><span>STATUS</span><b id='sideStatus'>Ready</b></div></div><div class='barrow'>CPU<div class='bar'><i style='width:18%'></i></div></div><div class='barrow'>RAM<div class='bar'><i style='width:42%'></i></div></div></section>
+<section class='panel modules'><h3>ACTIEVE MODULES</h3><label>Chat <input type='checkbox' checked></label><label>Spraakherkenning <input id='sttToggle' type='checkbox' checked></label><label>Tekst-naar-spraak <input id='ttsToggle' type='checkbox' checked></label><label>Bestandsanalyse <input type='checkbox'></label><label>Project Memory <input type='checkbox'></label></section>
+<section class='panel quick'><h3>SNELLE TOOLS</h3><button>⇧ Bestand uploaden</button><button>▣ Schermanalyse</button><button>✦ Notities</button><button>◈ Image Generate</button></section></aside>
+</div><script src='app.js'></script></body></html>
